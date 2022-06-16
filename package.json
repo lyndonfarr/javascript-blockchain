@@ -1,0 +1,22 @@
+{
+  "name": "poodle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyndonfarr/poodle.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lyndonfarr/poodle/issues"
+  },
+  "homepage": "https://github.com/lyndonfarr/poodle#readme",
+  "dependencies": {
+    "sha256": "^0.2.0"
+  }
+}
