@@ -1,7 +1,10 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const uuid = require('uuid').v1;
 const Blockchain = require('./blockchain');
+
+const nodeAddress = uuid().split('-').join('');
 
 const poodle = new Blockchain();
 
@@ -31,7 +34,7 @@ app.get('/mine', function (req, res) {
     const nonce = poodle.proofOfWork(previousBlockHash, currentBlockData);
     const blockHash = poodle.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-    // poodle.createNewTransaction(12.5, "00", );
+    poodle.createNewTransaction(12.5, "00", nodeAddress);
 
     const newBlock = poodle.createNewBlock(nonce, previousBlockHash, blockHash);
     res.json({
