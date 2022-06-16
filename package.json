@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/lyndonfarr/poodle#readme",
   "dependencies": {
+    "express": "^4.18.1",
     "sha256": "^0.2.0"
   }
 }
