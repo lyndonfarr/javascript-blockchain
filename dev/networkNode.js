@@ -96,7 +96,14 @@ app.post('/register-node', function (req, res) {
 });
 
 app.post('register-nodes-bulk', function (req, res) {
-    
+    const {allNetworkNodes} = req.body;
+    allNetworkNodes
+        .filter(networkNodeUrl => !poodle.networkNodes.includes(networkNodeUrl) && poodle.currentNodeUrl !== networkNodeUrl)
+        .forEach(networkNodeUrl => poodle.networkNodes.push(networkNodeUrl));
+
+    res.json({
+        note: 'Bulk registration successful',
+    });
 });
 
 app.listen(port, function () {
