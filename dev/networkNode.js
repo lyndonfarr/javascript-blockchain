@@ -56,13 +56,56 @@ app.get('/mine', function (req, res) {
     const nonce = poodle.proofOfWork(previousBlockHash, currentBlockData);
     const blockHash = poodle.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-    poodle.createNewTransaction(12.5, "00", nodeAddress);
-
     const newBlock = poodle.createNewBlock(nonce, previousBlockHash, blockHash);
-    res.json({
-        block: newBlock,
-        note: `New block mined successfully`,
-    });
+
+    const requestPromises = poodle.networkNodes
+        .map(networkNodeUrl => rp({
+            body: {
+                newBlock,
+            },
+            json: true,
+            method: 'POST',
+            uri: `${networkNodeUrl}/receive-new-block`,
+        }));
+
+    Promise.all(requestPromises)
+        .then(data => rp({
+            body: {
+                amount: 12.5,
+                recipient: nodeAddress,
+                sender: "00",
+            },
+            json: true,
+            method: 'POST',
+            uri: `${poodle.currentNodeUrl}/transaction/broadcast`,
+        }))
+        .then(data => {
+            res.json({
+                block: newBlock,
+                note: `New block mined and broadcast successfully`,
+            });
+        });
+});
+
+app.post('/receive-new-block', function (req, res) {
+    const {newBlock} = req.body;
+    const lastBlock = poodle.getLastBlock();
+    const correctHash = lastBlock.hash === newBlock.previousBlockHash;
+    const correctIndex = lastBlock.index + 1 === newBlock.index;
+
+    if (correctHash && correctIndex) {
+        poodle.chain.push(newBlock);
+        poodle.pendingTransactions = [];
+        res.json({
+            newBlock,
+            note: 'New block received and accepted.',
+        });
+    } else {
+        res.json({
+            newBlock,
+            note: 'New block rejected.',
+        });
+    }
 });
 
 app.post('/register-and-broadcast-node', function (req, res) {
