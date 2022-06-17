@@ -109,10 +109,28 @@ Blockchain.prototype.getTransaction = function (transactionId) {
             }
         })
     });
-    
+
     return {
         block: correctBlock,
         transaction: correctTransaction,
+    };
+};
+
+Blockchain.prototype.getAddressData = function (address) {
+    const addressTransactions = this.chain
+        .map(block => block.transactions.filter(transaction => transaction.recipient === address || transaction.sender === address))
+        .flat()
+    ;
+
+    const addressBalance = addressTransactions.reduce((balance, transaction) => {
+        return transaction.recipient === address
+            ? balance + transaction.amount
+            : balance - transaction.amount
+    }, 0);
+
+    return {
+        addressBalance,
+        addressTransactions,
     };
 };
 
