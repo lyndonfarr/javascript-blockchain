@@ -93,5 +93,9 @@ Blockchain.prototype.chainIsValid = function (blockchain) {
     return validGenesisBlock;
 };
 
+Blockchain.prototype.getBlock = function (blockHash) {
+    return this.chain.find(block => block.hash === blockHash) || null;
+};
+
 
 module.exports = Blockchain;

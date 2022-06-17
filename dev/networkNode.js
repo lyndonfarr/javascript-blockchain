@@ -209,7 +209,24 @@ app.get('/consensus', function (req, res) {
                 })
             }
         });
-})
+});
+
+
+app.get('/block/:blockHash', function (req, res) {
+    const {blockHash} = req.params;
+    const block = poodle.getBlock(blockHash);
+    res.json({
+        block,
+    });
+});
+
+app.get('/transaction/:transactionId', function (req, res) {
+
+});
+
+app.get('/address/:address', function (req, res) {
+
+});
 
 app.listen(port, function () {
     console.log(`Listening on port ${port}`);
