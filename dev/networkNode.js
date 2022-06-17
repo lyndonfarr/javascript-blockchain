@@ -18,12 +18,32 @@ app.get('/blockchain', function (req, res) {
 });
 
 app.post('/transaction', function (req, res) {
-    const {amount, sender, recipient} = req.body;
-    const blockIndex = poodle.createNewTransaction(amount, sender, recipient);
-
+    const newTransaction = req.body;
+    const blockIndex = poodle.addTransactionToPendingTransactions(newTransaction);
     res.json({
-        note: `Transaction will be added in block ${blockIndex}.`
+        note: `Transaction will be added in block ${blockIndex}`,
     });
+});
+
+app.post('/transaction/broadcast', function (req, res) {
+    const {amount, recipient, sender} = req.body;
+    const newTransaction = poodle.createNewTransaction(amount, sender, recipient);
+    poodle.addTransactionToPendingTransactions(newTransaction);
+
+    const requestPromises = poodle.networkNodes
+        .map(networkNodeUrl => rp({
+            body: newTransaction,
+            json: true,
+            method: 'POST',
+            uri: `${networkNodeUrl}/transaction`,
+        }));
+
+    Promise.all(requestPromises)
+        .then(data => {
+            res.json({
+                note: 'Transaction created and broadcast successfully',
+            });
+        });
 });
 
 app.get('/mine', function (req, res) {
@@ -50,18 +70,14 @@ app.post('/register-and-broadcast-node', function (req, res) {
     if (!poodle.networkNodes.includes(newNodeUrl)) poodle.networkNodes.push(newNodeUrl);
 
     const registerNodesPromises = poodle.networkNodes
-        .map(networkNodeUrl => {
-            const requestOptions = {
-                body: {
-                    newNodeUrl,
-                },
-                json: true,
-                method: 'POST',
-                uri: `${networkNodeUrl}/register-node`,
-            };
-
-            return rp(requestOptions);
-        });
+        .map(networkNodeUrl => rp({
+            body: {
+                newNodeUrl,
+            },
+            json: true,
+            method: 'POST',
+            uri: `${networkNodeUrl}/register-node`,
+        }));
 
     Promise.all(registerNodesPromises)
         .then(data => {
