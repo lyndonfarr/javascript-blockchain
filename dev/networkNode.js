@@ -38,7 +38,8 @@ app.post('/transaction/broadcast', function (req, res) {
             uri: `${networkNodeUrl}/transaction`,
         }));
 
-    Promise.all(requestPromises)
+    Promise
+        .all(requestPromises)
         .then(data => {
             res.json({
                 note: 'Transaction created and broadcast successfully',
@@ -68,7 +69,8 @@ app.get('/mine', function (req, res) {
             uri: `${networkNodeUrl}/receive-new-block`,
         }));
 
-    Promise.all(requestPromises)
+    Promise
+        .all(requestPromises)
         .then(data => rp({
             body: {
                 amount: 12.5,
@@ -122,7 +124,8 @@ app.post('/register-and-broadcast-node', function (req, res) {
             uri: `${networkNodeUrl}/register-node`,
         }));
 
-    Promise.all(registerNodesPromises)
+    Promise
+        .all(registerNodesPromises)
         .then(data => {
             const bulkRegisterOptions = {
                 body: {
@@ -164,6 +167,49 @@ app.post('/register-nodes-bulk', function (req, res) {
         note: 'Bulk registration successful',
     });
 });
+
+app.get('/consensus', function (req, res) {
+    const requestPromises = poodle.networkNodes
+        .map(networkNodeUrl => rp({
+            json: true,
+            method: 'GET',
+            uri: `${networkNodeUrl}/blockchain`,
+        }));
+    
+    Promise
+        .all(requestPromises)
+        .then(blockchains => {
+            const currentChainLength = poodle.chain.length;
+            let
+                maxChainLength = currentChainLength,
+                newLongestChain = null,
+                newPendingTransactions = null
+            ;
+            blockchains
+                .forEach(blockchain => {
+                    if (blockchain.chain.length > maxChainLength) {
+                        maxChainLength = blockchain.chain.length;
+                        newLongestChain = blockchain.chain;
+                        newPendingTransactions = blockchain.pendingTransactions;
+                    }
+                });
+
+            if (!newLongestChain || (newLongestChain && !poodle.chainIsValid(newLongestChain))) {
+                res.json({
+                    chain: poodle.chain,
+                    note: 'Current chain has not been replaced',
+                });
+            } else {
+                poodle.chain = newLongestChain;
+                poodle.pendingTransactions = newPendingTransactions;
+
+                res.json({
+                    chain: poodle.chain,
+                    note: 'This chain has been replaced',
+                })
+            }
+        });
+})
 
 app.listen(port, function () {
     console.log(`Listening on port ${port}`);
