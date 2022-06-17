@@ -221,7 +221,12 @@ app.get('/block/:blockHash', function (req, res) {
 });
 
 app.get('/transaction/:transactionId', function (req, res) {
-
+    const {transactionId} = req.params;
+    const {block, transaction} = poodle.getTransaction(transactionId);
+    res.json({
+        block,
+        transaction,
+    });
 });
 
 app.get('/address/:address', function (req, res) {
